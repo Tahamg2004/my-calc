@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آلة حاسبة ذكية</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            padding: 20px;
+        }
+
+        .calculator {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 28px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .screen {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            direction: ltr;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            word-break: break-all;
+        }
+
+        .previous-operand {
+            color: #94a3b8;
+            font-size: 1rem;
+            min-height: 1.5rem;
+        }
+
+        .current-operand {
+            color: #f8fafc;
+            font-size: 2.2rem;
+            font-weight: 600;
+        }
+
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            height: 60px;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.op {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        button.op:hover {
+            background: rgba(59, 130, 246, 0.35);
+        }
+
+        button.action {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        button.action:hover {
+            background: rgba(239, 68, 68, 0.35);
+        }
+
+        button.equal {
+            background: #3b82f6;
+            color: #ffffff;
+            grid-column: span 2;
+            font-weight: 600;
+        }
+
+        button.equal:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <div class="screen">
+        <div id="prev" class="previous-operand"></div>
+        <div id="curr" class="current-operand">0</div>
+    </div>
+    <div class="buttons-grid">
+        <button class="action" onclick="clearAll()">AC</button>
+        <button class="action" onclick="deleteDigit()">DEL</button>
+        <button class="op" onclick="appendOp('%')">%</button>
+        <button class="op" onclick="appendOp('/')">÷</button>
+
+        <button onclick="appendNum('7')">7</button>
+        <button onclick="appendNum('8')">8</button>
+        <button onclick="appendNum('9')">9</button>
+        <button class="op" onclick="appendOp('*')">×</button>
+
+        <button onclick="appendNum('4')">4</button>
+        <button onclick="appendNum('5')">5</button>
+        <button onclick="appendNum('6')">6</button>
+        <button class="op" onclick="appendOp('-')">-</button>
+
+        <button onclick="appendNum('1')">1</button>
+        <button onclick="appendNum('2')">2</button>
+        <button onclick="appendNum('3')">3</button>
+        <button class="op" onclick="appendOp('+')">+</button>
+
+        <button onclick="appendNum('0')">0</button>
+        <button onclick="appendNum('.')">.</button>
+        <button class="equal" onclick="compute()">=</button>
+    </div>
+</div>
+
+<script>
+    let current = '0';
+    let previous = '';
+    let operation = null;
+
+    const currElem = document.getElementById('curr');
+    const prevElem = document.getElementById('prev');
+
+    function updateDisplay() {
+        currElem.innerText = current;
+        if (operation != null) {
+            const sym = operation === '*' ? '×' : operation === '/' ? '÷' : operation;
+            prevElem.innerText = `${previous} ${sym}`;
+        } else {
+            prevElem.innerText = '';
+        }
+    }
+
+    function appendNum(num) {
+        if (num === '.' && current.includes('.')) return;
+        if (current === '0' && num !== '.') {
+            current = num;
+        } else {
+            current += num;
+        }
+        updateDisplay();
+    }
+
+    function appendOp(op) {
+        if (current === '') return;
+        if (previous !== '') {
+            compute();
+        }
+        operation = op;
+        previous = current;
+        current = '';
+        updateDisplay();
+    }
+
+    function compute() {
+        let result;
+        const prev = parseFloat(previous);
+        const curr = parseFloat(current);
+        if (isNaN(prev) || isNaN(curr)) return;
+
+        switch (operation) {
+            case '+': result = prev + curr; break;
+            case '-': result = prev - curr; break;
+            case '*': result = prev * curr; break;
+            case '/': result = curr === 0 ? 'خطأ' : prev / curr; break;
+            case '%': result = prev % curr; break;
+            default: return;
+        }
+
+        current = result.toString();
+        operation = null;
+        previous = '';
+        updateDisplay();
+    }
+
+    function clearAll() {
+        current = '0';
+        previous = '';
+        operation = null;
+        updateDisplay();
+    }
+
+    function deleteDigit() {
+        if (current === '0') return;
+        current = current.slice(0, -1);
+        if (current === '') current = '0';
+        updateDisplay();
+    }
+</script>
+
+</body>
+</html>
